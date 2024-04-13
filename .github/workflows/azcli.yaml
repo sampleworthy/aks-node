@@ -1,0 +1,64 @@
+name: Build and Deploy
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'aks-node/**'
+  workflow_dispatch:
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    environment: aks-demo
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v3
+
+      - name: Azure login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Docker login to ACR
+        run: |
+            az acr login --name ${{ secrets.registry }}
+
+      - name: Build and push Docker image
+        run: |
+            docker build -t ${{ secrets.registry }}.azurecr.io/${{ secrets.repository }}/myapp:latest${{ github.sha }} .
+            docker push ${{ secrets.registry }}.azurecr.io/${{ secrets.repository }}/myapp:latest${{ github.sha }}
+        env:
+          AZURE_CREDENTIALS: ${{ secrets.AZURE_CREDENTIALS }}
+
+  deploy:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    environment: aks-demo
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v3
+
+      - name: Azure login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Set AKS context
+        uses: azure/aks-set-context@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+          resource-group: '${{ secrets.resource_group }}' 
+          cluster-name: '${{ secrets.cluster_name }}'
+ 
+      - name: Deploy to AKS
+        run: |
+            creds=${{ secrets.AZURE_CREDENTIALS }}
+            client_id=$(echo $creds | jq -r '.clientId')
+            client_secret=$(echo $creds | jq -r '.clientSecret')
+            tenant_id=$(echo $creds | jq -r '.tenantId')
+
+            az login --service-principal -u $client_id -p $client_secret --tenant $tenant_id
+            az aks get-credentials --resource-group ${{ secrets.resource_group }} --name ${{ secrets.cluster_name }}
+            kubectl apply -f k8s/deployment.yaml -n aksdemo
