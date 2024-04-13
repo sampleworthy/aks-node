@@ -14,7 +14,7 @@ jobs:
     environment: aks-demo
     steps:
       - name: Checkout source code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Azure login
         uses: azure/login@v1
@@ -27,8 +27,8 @@ jobs:
 
       - name: Build and push Docker image
         run: |
-            docker build -t ${{ secrets.registry }}.azurecr.io/myapp:latest .
-            docker push ${{ secrets.registry }}.azurecr.io/myapp:latest
+            docker build -t ${{ secrets.registry }}.azurecr.io/${{ secrets.repository }}/myapp:latest-${{ github.sha }} .
+            docker push ${{ secrets.registry }}.azurecr.io/${{ secrets.repository }}/myapp:latest-${{ github.sha }}
         env:
           AZURE_CREDENTIALS: ${{ secrets.AZURE_CREDENTIALS }}
 
@@ -38,7 +38,7 @@ jobs:
     environment: aks-demo
     steps:
       - name: Checkout source code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Azure login
         uses: azure/login@v1
@@ -59,4 +59,4 @@ jobs:
           manifests: |
             k8s/deployment.yaml
           images: |
-            ${{ secrets.registry }}.azurecr.io/myapp:latest
+            ${{ secrets.registry }}.azurecr.io/${{ secrets.repository }}/myapp:latest-${{ github.sha }}
