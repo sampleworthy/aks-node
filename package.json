@@ -1,0 +1,19 @@
+{
+  "name": "nodedocker",
+  "version": "1.0.0",
+  "description": "aCR test image",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sampleworthy/nodeDocker.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/sampleworthy/nodeDocker/issues"
+  },
+  "homepage": "https://github.com/sampleworthy/nodeDocker#readme"
+}
