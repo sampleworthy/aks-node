@@ -47,6 +47,6 @@ jobs:
         with:
           namespace: 'default'
           manifests: |
-            K8s/deployment.yaml
+            k8s/deployment.yaml
           images: |
             ${{ secrets.registry }}.azurecr.io/${{ secrets.repository }}/myapp:${{ github.sha }}
