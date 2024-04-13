@@ -9,13 +9,35 @@ on:
   workflow_dispatch:
 
 jobs:
-  build:
+  build-and-push:
     runs-on: ubuntu-latest
     environment: aks-demo
     steps:
       - name: Checkout source code 
         uses: actions/checkout@v3
 
+      - name: Azure login
+        id: login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Docker login to ACR
+        run: |
+            az acr login --name ${{ secrets.registry }}
+
+      - name: Build and push Docker image
+        run: |
+            docker build -t ${{ secrets.registry }}.azurecr.io/${{ secrets.repository }}/myapp:${{ github.sha }} .
+            docker push ${{ secrets.registry }}.azurecr.io/${{ secrets.repository }}/myapp:${{ github.sha }}
+        env:
+          AZURE_CREDENTIALS: ${{ secrets.AZURE_CREDENTIALS }}
+
+  deploy:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    environment: aks-demo
+    steps:
       - name: Azure login
         id: login
         uses: azure/login@v1
@@ -30,16 +52,14 @@ jobs:
           resource-group: '${{ secrets.resource_group }}' 
           cluster-name: '${{ secrets.cluster_name }}'
 
-      - name: Docker login to ACR
+      - name: Get ACR credentials
+        id: get-acr-credentials
         run: |
-            az acr login --name ${{ secrets.registry }}
+          echo "::set-output name=acr_password::$(az acr credential show --name ${{ secrets.registry }} --query passwords[0].value)"
 
-      - name: Build and push Docker image
+      - name: Create Kubernetes secret
         run: |
-            docker build -t ${{ secrets.registry }}.azurecr.io/${{ secrets.repository }}/myapp:${{ github.sha }} .
-            docker push ${{ secrets.registry }}.azurecr.io/${{ secrets.repository }}/myapp:${{ github.sha }}
-        env:
-          AZURE_CREDENTIALS: ${{ secrets.AZURE_CREDENTIALS }}
+          kubectl create secret docker-registry acr-auth --docker-server=${{ secrets.registry }}.azurecr.io --docker-username=${{ secrets.registry }} --docker-password=${{ steps.get-acr-credentials.outputs.acr_password }}
 
       - name: Deploy to AKS
         id: deploy-aks
