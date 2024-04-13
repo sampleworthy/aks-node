@@ -10,23 +10,9 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    environment: aks-demo
     steps:
       - name: Checkout source code 
         uses: actions/checkout@v3
-
-      - name: ACR build
-        id: build-push-acr
-        uses: azure/acr-build@v1
-        with:
-          service_principal: ${{ secrets.service_principal }}
-          service_principal_password: ${{ secrets.service_principal_password }}
-          tenant: ${{ secrets.tenant }}
-          registry: ${{ secrets.registry }}
-          repository: ${{ secrets.repository }}
-          image:  myapp
-          branch: main
-          tag: ${{ github.sha }}
 
       - name: Azure login
         id: login
@@ -40,6 +26,17 @@ jobs:
         with:
           resource-group: '${{ secrets.resource_group }}' 
           cluster-name: '${{ secrets.cluster_name }}'
+
+      - name: Docker login to ACR
+        run: |
+            az acr login --name ${{ secrets.registry }}
+
+      - name: Build and push Docker image
+        run: |
+            docker build -t ${{ secrets.registry }}.azurecr.io/${{ secrets.repository }}/myapp:${{ github.sha }} .
+            docker push ${{ secrets.registry }}.azurecr.io/${{ secrets.repository }}/myapp:${{ github.sha }}
+        env:
+          AZURE_CREDENTIALS: ${{ secrets.AZURE_CREDENTIALS }}
 
       - name: Deploy to AKS
         id: deploy-aks
