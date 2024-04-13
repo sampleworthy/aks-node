@@ -69,5 +69,5 @@ jobs:
             tenant_id=$(echo $CREDS | jq -r '.tenantId')
 
             az login --service-principal -u $client_id -p $client_secret --tenant $tenant_id
-            az aks get-credentials --resource-group ${{ secrets.resource_group }} --name ${{ secrets.cluster_name }}
+            az aks get-credentials --resource-group ${{ secrets.resource_group }} --name ${{ secrets.cluster_name }} --overwrite-existing
             kubectl apply -f k8s/deployment.yaml -n aksdemo
