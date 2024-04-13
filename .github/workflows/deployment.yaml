@@ -1,52 +1,52 @@
 name: build_deploy_aks
 
 on:
-    push:
-        branches:
-            - main
-        paths:
-            - 'aks-node/**'
+  push:
+    branches:
+      - main
+    paths:
+      - 'aks-node/**'
 
 jobs:
-    build:
-        runs-on: ubuntu-latest
-        environment: aks-demo
-        steps:
-            - name: Checkout source code 
-                uses: actions/checkout@v2
+  build:
+    runs-on: ubuntu-latest
+    environment: aks-demo
+    steps:
+      - name: Checkout source code 
+        uses: actions/checkout@v3
 
-            - name: ACR build
-                id: build-push-acr
-                uses: azure/acr-build@v1
-                with:
-                    service_principal: ${{ secrets.service_principal }}
-                    service_principal_password: ${{ secrets.service_principal_password }}
-                    tenant: ${{ secrets.tenant }}
-                    registry: ${{ secrets.registry }}
-                    repository: ${{ secrets.repository }}
-                    image:  myapp
-                    branch: main
-                    tag: ${{ github.sha }}
+      - name: ACR build
+        id: build-push-acr
+        uses: azure/acr-build@v1
+        with:
+          service_principal: ${{ secrets.service_principal }}
+          service_principal_password: ${{ secrets.service_principal_password }}
+          tenant: ${{ secrets.tenant }}
+          registry: ${{ secrets.registry }}
+          repository: ${{ secrets.repository }}
+          image:  myapp
+          branch: main
+          tag: ${{ github.sha }}
 
-            - name: Azure login
-                id: login
-                uses: azure/login@v1
-                with:
-                    creds: ${{ secrets.AZURE_CREDENTIALS }}
+      - name: Azure login
+        id: login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-            - name: Set AKS context
-                id: set-context
-                uses: azure/aks-set-context@v1
-                with:
-                    resource-group: '${{ secrets.resource_group }}' 
-                    cluster-name: '${{ secrets.cluster_name }}'
+      - name: Set AKS context
+        id: set-context
+        uses: azure/aks-set-context@v1
+        with:
+          resource-group: '${{ secrets.resource_group }}' 
+          cluster-name: '${{ secrets.cluster_name }}'
 
-            - name: Deploy to AKS
-                id: deploy-aks
-                uses: azure/k8s-deploy@v1
-                with:
-                    namespace: 'default'
-                    manifests: |
-                        K8s/deployment.yaml
-                    images: |
-                        ${{ secrets.registry }}.azurecr.io/${{ secrets.repository }}/myapp:${{ github.sha }}
+      - name: Deploy to AKS
+        id: deploy-aks
+        uses: azure/k8s-deploy@v1
+        with:
+          namespace: 'default'
+          manifests: |
+            K8s/deployment.yaml
+          images: |
+            ${{ secrets.registry }}.azurecr.io/${{ secrets.repository }}/myapp:${{ github.sha }}
