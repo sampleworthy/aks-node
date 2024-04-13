@@ -6,6 +6,7 @@ on:
       - main
     paths:
       - 'aks-node/**'
+  workflow_dispatch:
 
 jobs:
   build:
