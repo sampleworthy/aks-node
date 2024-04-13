@@ -1,4 +1,4 @@
-name: build_deploy_aks
+name: Build and Deploy
 
 on:
   push:
@@ -13,11 +13,10 @@ jobs:
     runs-on: ubuntu-latest
     environment: aks-demo
     steps:
-      - name: Checkout source code 
+      - name: Checkout source code
         uses: actions/checkout@v3
 
       - name: Azure login
-        id: login
         uses: azure/login@v1
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
@@ -38,34 +37,22 @@ jobs:
     runs-on: ubuntu-latest
     environment: aks-demo
     steps:
-      - name: Checkout source code 
+      - name: Checkout source code
         uses: actions/checkout@v3
-      
+
       - name: Azure login
-        id: login
         uses: azure/login@v1
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
       - name: Set AKS context
-        id: set-context
         uses: azure/aks-set-context@v1
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
           resource-group: '${{ secrets.resource_group }}' 
           cluster-name: '${{ secrets.cluster_name }}'
 
-      - name: Get ACR credentials
-        id: get-acr-credentials
-        run: |
-          echo "::set-output name=acr_password::$(az acr credential show --name ${{ secrets.registry }} --query passwords[0].value)"
-
-      - name: Create Kubernetes secret
-        run: |
-          kubectl create secret docker-registry demox --docker-server=${{ secrets.registry }}.azurecr.io --docker-username=${{ secrets.registry }} --docker-password=${{ steps.get-acr-credentials.outputs.acr_password }}
-
       - name: Deploy to AKS
-        id: deploy-aks
         uses: azure/k8s-deploy@v1
         with:
           namespace: 'default'
