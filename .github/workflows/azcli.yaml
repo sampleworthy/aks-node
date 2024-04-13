@@ -53,11 +53,12 @@ jobs:
           cluster-name: '${{ secrets.cluster_name }}'
  
       - name: Deploy to AKS
+        env:
+            CREDS: ${{ secrets.AZURE_CREDENTIALS }}
         run: |
-            creds=${{ secrets.AZURE_CREDENTIALS }}
-            client_id=$(echo $creds | jq -r '.clientId')
-            client_secret=$(echo $creds | jq -r '.clientSecret')
-            tenant_id=$(echo $creds | jq -r '.tenantId')
+            client_id=$(echo $CREDS | jq -r '.clientId')
+            client_secret=$(echo $CREDS | jq -r '.clientSecret')
+            tenant_id=$(echo $CREDS | jq -r '.tenantId')
 
             az login --service-principal -u $client_id -p $client_secret --tenant $tenant_id
             az aks get-credentials --resource-group ${{ secrets.resource_group }} --name ${{ secrets.cluster_name }}
