@@ -59,7 +59,7 @@ jobs:
 
       - name: Create Kubernetes secret
         run: |
-          kubectl create secret docker-registry acr-auth --docker-server=${{ secrets.registry }}.azurecr.io --docker-username=${{ secrets.registry }} --docker-password=${{ steps.get-acr-credentials.outputs.acr_password }}
+          kubectl create secret docker-registry demox --docker-server=${{ secrets.registry }}.azurecr.io --docker-username=${{ secrets.registry }} --docker-password=${{ steps.get-acr-credentials.outputs.acr_password }}
 
       - name: Deploy to AKS
         id: deploy-aks
