@@ -11,6 +11,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    environment: aks-node
     steps:
       - name: Checkout source code 
         uses: actions/checkout@v3
