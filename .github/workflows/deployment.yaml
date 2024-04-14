@@ -27,8 +27,8 @@ jobs:
 
       - name: Build and push Docker image
         run: |
-            docker build -t ${{ secrets.registry }}.azurecr.io/${{ secrets.repository }}/myapp:latest-${{ github.sha }} .
-            docker push ${{ secrets.registry }}.azurecr.io/${{ secrets.repository }}/myapp:latest-${{ github.sha }}
+            docker build -t ${{ secrets.registry }}.azurecr.io/${{ secrets.repository }}/myapp:${{ github.sha }} .
+            docker push ${{ secrets.registry }}.azurecr.io/${{ secrets.repository }}/myapp:${{ github.sha }}
         env:
           AZURE_CREDENTIALS: ${{ secrets.AZURE_CREDENTIALS }}
 
