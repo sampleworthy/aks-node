@@ -22,7 +22,7 @@ jobs:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
     
       - name: Login to Azure Container Registry
-        uses: docker/login-action@v1 
+        uses: docker/login-action@v3.1.0 
         with:
             registry: ${{ secrets.registry }}.azurecr.io
             username: ${{ secrets.AZURE_USERNAME }}
